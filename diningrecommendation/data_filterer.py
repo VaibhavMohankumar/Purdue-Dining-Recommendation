@@ -1,3 +1,7 @@
+"""
+Filtering utilities for Purdue dining menu data.
+"""
+
 import pandas as pd
 
 def filter_nutrition_requirements(df: pd.DataFrame, max_cals: int=0, min_protein: int=0, max_carbs: int=0, max_fat: int=0) -> pd.DataFrame:
@@ -22,14 +26,8 @@ def filter_nutrition_requirements(df: pd.DataFrame, max_cals: int=0, min_protein
         "Total Carbohydrate-value",
         "Total fat-value",
     ]
-
-    for column in nutrition_columns:
-        df[column] = (
-            df[column]
-            .astype(str)
-            .str.extract(r"(\d+\.?\d*)")[0]
-        )
-        df[column] = pd.to_numeric(df[column], errors="coerce").fillna(0)
+    
+    df = extract_nutrition_values(df, nutrition_columns)
     
     if (max_cals != 0):
         df = df[(df["Calories-value"] <= max_cals)]
@@ -85,5 +83,30 @@ def filter_dietary_restrictions(df: pd.DataFrame, diet_restrictions: list = [], 
     for allergen in allergen_columns:
         if allergen in allergens:
             df = df[df[allergen].isna()]
+            
+    return df
+
+def extract_nutrition_values(df: pd.DataFrame, columns: list) -> pd.DataFrame:
+    """
+    Extract numeric nutrition values from DataFrame columns.
+
+    Nutrition values may contain units or text, and this function extracts
+    the first numeric value and stores it.
+
+    Args:
+        df: DataFrame containing nutrition columns.
+        columns: List of nutrition column names to convert.
+
+    Returns:
+        The DataFrame with the selected nutrition columns converted
+        to numeric values.
+    """
+    for column in columns:
+            df[column] = (
+                df[column]
+                .astype(str)
+                .str.extract(r"(\d+\.?\d*)")[0]
+            )
+            df[column] = pd.to_numeric(df[column], errors="coerce").fillna(0)
             
     return df

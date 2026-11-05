@@ -1,5 +1,5 @@
 """
-Utilities for retrieving Purdue dining menu data and selecting a meal period.
+Utility for retrieving Purdue dining menu data and selecting a meal period.
 """
 
 import requests
