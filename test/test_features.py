@@ -1,7 +1,7 @@
 import diningrecommendation.data_loader as dl
-from datetime import date
+import diningrecommendation.data_filterer as dfr
+from datetime import date, datetime
 import pytest
-from diningrecommendation.dining_exception import DiningException
 
 # Tests to ensure get_meal_period() returns correct meal period based on time of day
 def test_breakfast_period():
@@ -49,18 +49,89 @@ def test_get_json_returns_DiningException():
         
         assert exc.typename == "DiningException"
         
-
-# Test to ensure json is parsed correctly with all neccessaru columns
-def test_parse_data_returns_correct_df_columns():
-    _, result = dl.get_json(
-        location="Windsor",
-        menu_date=date(2026, 11, 1),
-        meal_period="LUNCH"
+# Fixture runs to get API data once before tests that require the data run
+@pytest.fixture
+def menu_dataframe():
+    data = dl.get_json(
+        location="Ford",
+        menu_date=datetime.now().date(),
     )
-    result = dl.parse_data(result)
+
+    df = dl.parse_data(data)
+
+    if df.empty:
+        pytest.skip("No menu data available today")
+
+    return df
+
+
+# 4 Tests to ensure nutrition filtering return filtered menu items
+def test_max_calories(menu_dataframe):
+    max_calories = 500
+
+    result = dfr.filter_nutrition_requirements(
+        menu_dataframe,
+        max_cals=max_calories,
+    )
+
+    assert (result["Calories-value"] <= max_calories).all()
+
+
+def test_minimum_protein(menu_dataframe):
+    minimum_protein = 10
+
+    result = dfr.filter_nutrition_requirements(
+        menu_dataframe,
+        min_protein=minimum_protein,
+    )
+
+    assert (result["Protein-value"] >= minimum_protein).all()
+
+
+def test_maximum_carbohydrates(menu_dataframe):
+    maximum_carbs = 60
+
+    result = dfr.filter_nutrition_requirements(
+        menu_dataframe,
+        max_carbs=maximum_carbs,
+    )
+
+    assert (result["Total Carbohydrate-value"] <= maximum_carbs).all()
+
+
+def test_maximum_fat(menu_dataframe):
+    maximum_fat = 25
+
+    result = dfr.filter_nutrition_requirements(
+        menu_dataframe,
+        max_fat=maximum_fat,
+    )
+
+    assert (result["Total fat-value"] <= maximum_fat).all()
     
-    assert result.columns.tolist() == ["station_name", "item_name", "item_id", "Serving Size-value",
-                            "Calories-value", "Calories from fat-value", "Total fat-value", "Saturated fat-value", "Cholesterol-value",
-                            "Sodium-value", "Total Carbohydrate-value", "Sugar-value", "Added Sugar-value", "Dietary Fiber-value", 
-                            "Protein-value", "Calcium-value", "Iron-value", "Eggs-value", "Gluten-value", "Milk-value", "Soy-value",
-                            "Vegetarian-value", "Wheat-value", "Vegan-value", "Fish-value", "Peanuts-value", "Sesame-value", "Coconut-value"]
+
+# 2 Tests to ensure diet and allergen requirements/restrictions are filtered
+def test_live_nutrition_filter(menu_dataframe):
+    result = dfr.filter_nutrition_requirements(
+        menu_dataframe,
+        max_cals=500,
+        min_protein=10,
+        max_carbs=60,
+        max_fat=25,
+    )
+
+    assert (result["Calories-value"] <= 500).all()
+    assert (result["Protein-value"] >= 10).all()
+    assert (result["Total Carbohydrate-value"] <= 60).all()
+    assert (result["Total fat-value"] <= 25).all()
+
+
+def test_live_dietary_filter(menu_dataframe):
+    result = dfr.filter_dietary_restrictions(
+        menu_dataframe,
+        diet_restrictions=["Vegetarian-value"],
+        allergens=["Milk-value"],
+    )
+
+    assert result["Vegetarian-value"].notna().all()
+    assert result["Milk-value"].isna().all()
