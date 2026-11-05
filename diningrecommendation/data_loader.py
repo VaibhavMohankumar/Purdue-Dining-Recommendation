@@ -5,8 +5,8 @@ Utilities for retrieving Purdue dining menu data and selecting a meal period.
 import requests
 from datetime import datetime, date
 import pandas as pd
-import constants
-from dining_exception import DiningException
+import diningrecommendation.constants as constants
+from diningrecommendation.dining_exception import DiningException
 
 
 def get_meal_period(hour=None) -> str:
@@ -96,7 +96,7 @@ def parse_data(json_data) -> pd.DataFrame:
     
     rows = []
     
-    for station in json_data:
+    for station in json_data[1]:
         station_name = station.get("name")
         
         for item in station.get("items", []):
@@ -124,10 +124,10 @@ def parse_data(json_data) -> pd.DataFrame:
                 rows.append(parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
         
     df = pd.DataFrame(rows)
-    df.drop_duplicates("item_id")
+    df = df.drop_duplicates("item_id")
     return df
 
-def parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info):
+def parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info) -> dict:
     """
     Convert one menu item's information into a dictionary representing a row in a pandas DataFrame.
 
@@ -154,7 +154,7 @@ def parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info
             col_name = f"{info.get("name")}-value"
             row_data[col_name] = info.get("label")
 
-    # Add traits formatted as "Name-value"
+    # Add allergens and dietary info formatted as "Name-value"
     for info in allergen_info:
         if info and info.get("name"):
             col_name = f"{info.get("name")}-value"
