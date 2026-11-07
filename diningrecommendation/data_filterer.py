@@ -3,6 +3,7 @@ Filtering utilities for Purdue dining menu data.
 """
 
 import pandas as pd
+import constants
 
 def filter_nutrition_requirements(df: pd.DataFrame, max_cals: int=0, min_protein: int=0, max_carbs: int=0, max_fat: int=0) -> pd.DataFrame:
     """
@@ -27,7 +28,7 @@ def filter_nutrition_requirements(df: pd.DataFrame, max_cals: int=0, min_protein
         "Total fat-value",
     ]
     
-    df = extract_nutrition_values(df, nutrition_columns)
+    df = _extract_nutrition_values(df, nutrition_columns)
     
     if (max_cals != 0):
         df = df[(df["Calories-value"] <= max_cals)]
@@ -63,20 +64,9 @@ def filter_dietary_restrictions(df: pd.DataFrame, diet_restrictions: list = [], 
         requested dietary restrictions and do not contain selected allergens.
     """
     
-    not_allergen = [
-        'station_name', 'item_name', 'item_id', 'Serving Size-value', 'Calories-value',
-        'Calories from fat-value', 'Total fat-value', 'Saturated fat-value', 'Cholesterol-value',
-        'Sodium-value', 'Total Carbohydrate-value', 'Sugar-value', 'Added Sugar-value', 'Dietary Fiber-value',
-        'Protein-value', 'Calcium-value', 'Iron-value', "Vegetarian-value", "Vegan-value"
-    ]
+    allergen_columns = [allergen for allergen in df.columns.to_list() if allergen not in constants.NOT_ALLERGEN]
     
-    dietary_columns = [
-        "Vegetarian-value", "Vegan-value"
-    ]
-    
-    allergen_columns = [allergen for allergen in df.columns.to_list() if allergen not in not_allergen]
-    
-    for restriction in dietary_columns:
+    for restriction in constants.DIETARY_COLUMNS:
         if restriction in diet_restrictions:
             df = df[~df[restriction].isna()]
     
@@ -86,7 +76,7 @@ def filter_dietary_restrictions(df: pd.DataFrame, diet_restrictions: list = [], 
             
     return df
 
-def extract_nutrition_values(df: pd.DataFrame, columns: list) -> pd.DataFrame:
+def _extract_nutrition_values(df: pd.DataFrame, columns: list) -> pd.DataFrame:
     """
     Extract numeric nutrition values from DataFrame columns.
 

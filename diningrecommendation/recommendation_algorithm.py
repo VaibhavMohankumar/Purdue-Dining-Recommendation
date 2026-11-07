@@ -39,7 +39,7 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
         user_preferences["Total fat-value"] = fat
 
     
-    df = dfr.extract_nutrition_values(df, list(user_preferences.keys()))
+    df = dfr._extract_nutrition_values(df, list(user_preferences.keys()))
             
     scaler = StandardScaler()
 

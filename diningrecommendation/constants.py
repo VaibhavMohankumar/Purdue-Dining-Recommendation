@@ -56,3 +56,12 @@ query DiningCourtMenu($name: String!, $date: Date!) {
     }
 }
 """
+DINING_HALLS = ["ford", "wiley", "windsor", "earhart", "hillenbrand"]
+MEAL_OPTIONS = ["BREAKFAST", "LUNCH", "DINNER"]
+DIETARY_COLUMNS = ["Vegetarian-value", "Vegan-value"]
+NOT_ALLERGEN = [
+    'station_name', 'item_name', 'item_id', 'Serving Size-value', 'Calories-value',
+    'Calories from fat-value', 'Total fat-value', 'Saturated fat-value', 'Cholesterol-value',
+    'Sodium-value', 'Total Carbohydrate-value', 'Sugar-value', 'Added Sugar-value', 'Dietary Fiber-value',
+    'Protein-value', 'Calcium-value', 'Iron-value', "Vegetarian-value", "Vegan-value"
+]
