@@ -1,10 +1,10 @@
 import streamlit as st
-import constants
 from datetime import date
+import pandas as pd
+import constants
 import data_loader as dl
 import data_filterer as dfr
 import recommendation_algorithm as ra
-import pandas as pd
 
 st.title("Purdue Dining Recommendation")
 st.write("Find Purdue dining items that match your nutrition and dietary preferences.")
@@ -18,7 +18,7 @@ with st.sidebar:
     allergens = st.multiselect("Allergies", constants.ALLERGENS)
     
     desired_cals = st.number_input("Desired calories", min_value=50, max_value=800, value=400, step=50) or None
-    desired_protein = st.number_input("Desired protein (g)", min_value=10, max_value=30, value=10, step=5) or None
+    desired_protein = st.number_input("Desired protein (g)", min_value=5, max_value=30, value=10, step=5) or None
     desired_carbs = st.number_input("Desired carbs", min_value=10, max_value=150, value=50, step=10) or None
     desired_fat = st.number_input("Desired fat", min_value=5, max_value=50, value=20, step=5) or None
     
@@ -36,17 +36,15 @@ if st.button("Recommend items", type="primary"):
             st.error("No items meet search criteria")
         else:
             for _, row in menu_data.iterrows():
-                print(row)
                 with st.container(border=True):
                     st.subheader(row["item_name"])
-                    st.caption(f"{row['station_name']}")
+                    st.caption(row['station_name'])
                     st.write(row["recommendation_reason"])
+                    st.write("Serving Size: " + row["Serving Size-value"])
                     
                     diet_restrictions = []
                     known_allergens = []
                     for col_name, value in row.items():
-                        print(value)
-                        print(col_name.partition("-")[0])
                         if pd.notna(value):
                             if col_name.partition("-")[0] in constants.ALLERGENS:
                                 known_allergens.append(col_name.partition("-")[0])

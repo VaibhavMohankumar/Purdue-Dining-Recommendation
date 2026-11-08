@@ -3,7 +3,6 @@ Meal recommendation utility.
 """
 
 import pandas as pd
-import data_filterer as dfr
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
 
@@ -34,7 +33,7 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
     if protein is not None:
         user_preferences["Protein-value"] = protein
     if carbs is not None:
-        user_preferences["Total Carbohydrate-value"] = calories
+        user_preferences["Total Carbohydrate-value"] = carbs
     if fat is not None:
         user_preferences["Total fat-value"] = fat
 

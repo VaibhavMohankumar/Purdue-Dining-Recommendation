@@ -1,5 +1,7 @@
-import diningrecommendation.data_loader as dl
-import diningrecommendation.data_filterer as dfr
+"""Test cases used during development process"""
+
+from diningrecommendation import data_loader as dl
+from diningrecommendation import data_filterer as dfr
 from datetime import date, datetime
 import pytest
 

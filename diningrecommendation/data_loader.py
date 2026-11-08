@@ -5,9 +5,9 @@ Utility for retrieving Purdue dining menu data and selecting a meal period.
 import requests
 from datetime import datetime, date
 import pandas as pd
-import constants as constants
-from dining_exception import DiningException
 import streamlit as st
+import constants
+from dining_exception import DiningException
 
 def get_meal_period(hour=None) -> str:
     """

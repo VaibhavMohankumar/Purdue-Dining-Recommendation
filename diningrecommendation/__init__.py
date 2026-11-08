@@ -1,0 +1,3 @@
+"""
+Purdue Dining Recommendation package.
+"""
