@@ -56,3 +56,7 @@ query DiningCourtMenu($name: String!, $date: Date!) {
     }
 }
 """
+DINING_HALLS = ["Ford", "Wiley", "Windsor", "Earhart", "Hillenbrand"]
+MEAL_OPTIONS = ["Now", "Breakfast", "Lunch", "Dinner"]
+DIETARY_COLUMNS = ["None", "Vegetarian", "Vegan"]
+ALLERGENS = ["Gluten", "Sesame", "Soy", "Wheat", "Milk", "Eggs", "Coconut", "Fish", "Shellfish", "Peanuts", "Tree Nuts"]

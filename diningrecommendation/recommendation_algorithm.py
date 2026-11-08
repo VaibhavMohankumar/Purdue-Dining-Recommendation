@@ -39,7 +39,7 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
         user_preferences["Total fat-value"] = fat
 
     
-    df = dfr.extract_nutrition_values(df, list(user_preferences.keys()))
+    df = _extract_nutrition_values(df, list(user_preferences.keys()))
             
     scaler = StandardScaler()
 
@@ -54,9 +54,34 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
     recommendations = df.iloc[indexes[0]].copy()
     recommendations["distance"] = distances[0]
     recommendations["recommendation_reason"] = recommendations.apply(
-        lambda row: f"Closest nutrition match: {row['Protein-value']:.0f}g protein, {row['Calories-value']:.0f} calories, {row['Total Carbohydrate-value']:.0f} carbs, and {row['Total fat-value']:.0f} fat."
+        lambda row: f"Closest nutrition match: {row['Calories-value']:.0f} calories, {row['Protein-value']:.0f}g protein, {row['Total Carbohydrate-value']:.0f}g carbs, and {row['Total fat-value']:.0f}g fat."
         if pd.notna(row["Protein-value"]) and pd.notna(row["Calories-value"]) and pd.notna(row["Total Carbohydrate-value"]) and pd.notna(row["Total fat-value"])
         else "Matches your filters; some nutrition data is unavailable", axis=1
     )
             
     return recommendations
+
+def _extract_nutrition_values(df: pd.DataFrame, columns: list) -> pd.DataFrame:
+    """
+    Extract numeric nutrition values from DataFrame columns.
+
+    Nutrition values may contain units or text, and this function extracts
+    the first numeric value and stores it.
+
+    Args:
+        df: DataFrame containing nutrition columns.
+        columns: List of nutrition column names to convert.
+
+    Returns:
+        The DataFrame with the selected nutrition columns converted
+        to numeric values.
+    """
+    for column in columns:
+            df[column] = (
+                df[column]
+                .astype(str)
+                .str.extract(r"(\d+\.?\d*)")[0]
+            )
+            df[column] = pd.to_numeric(df[column], errors="coerce").fillna(0)
+            
+    return df
