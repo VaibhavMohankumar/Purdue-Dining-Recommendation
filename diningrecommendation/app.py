@@ -1,3 +1,18 @@
+"""
+Purdue Dining Recommendation Streamlit Application.
+
+This application helps Purdue students find menu items that match their
+nutrition goals, dietary restrictions, and allergen preferences.
+
+The application:
+
+1. Fetches menu data from the Purdue Dining API.
+2. Parses the API response into a pandas DataFrame.
+3. Filters items based on dietary restrictions and allergens.
+4. Ranks compatible items using a nearest-neighbors algorithm.
+5. Displays personalized recommendations through Streamlit.
+"""
+
 import streamlit as st
 from datetime import date
 import pandas as pd

@@ -96,37 +96,40 @@ def parse_data(json_data) -> pd.DataFrame:
     """
     
     rows = []
-    
-    for station in json_data[1]:
-        station_name = station.get("name")
-        
-        for item in station.get("items", []):
-            name = item.get("displayName")
+    try: 
+        for station in json_data[1]:
+            station_name = station.get("name")
             
-            inner_item = item.get("item", {})
-            if not inner_item:
-                continue
-            
-            if (inner_item.get("components")):
+            for item in station.get("items", []):
+                name = item.get("displayName")
                 
-                for component_item in inner_item.get("components"):
+                inner_item = item.get("item", {})
+                if not inner_item:
+                    continue
+                
+                if (inner_item.get("components")):
                     
-                    name = component_item.get("name")
-                    item_id = component_item.get("itemId")
-                    nutrition_info = component_item.get("nutritionFacts") or []
-                    allergen_info = component_item.get("traits") or []
-                    
-                    rows.append(_parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
-            else:
-                item_id = inner_item.get("itemId")
-                nutrition_info = inner_item.get("nutritionFacts") or []
-                allergen_info = inner_item.get("traits") or []
+                    for component_item in inner_item.get("components"):
+                        
+                        name = component_item.get("name")
+                        item_id = component_item.get("itemId")
+                        nutrition_info = component_item.get("nutritionFacts") or []
+                        allergen_info = component_item.get("traits") or []
+                        
+                        rows.append(_parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
+                else:
+                    item_id = inner_item.get("itemId")
+                    nutrition_info = inner_item.get("nutritionFacts") or []
+                    allergen_info = inner_item.get("traits") or []
 
-                rows.append(_parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
-        
-    df = pd.DataFrame(rows)
-    df = df.drop_duplicates("item_id")
-    return df
+                    rows.append(_parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
+            
+        df = pd.DataFrame(rows)
+        df = df.drop_duplicates("item_id")
+        df = df.drop_duplicates("item_name")
+        return df
+    except KeyError:
+        raise DiningException("No meal Served")
 
 def _parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info) -> dict:
     """

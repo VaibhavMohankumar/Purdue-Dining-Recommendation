@@ -51,23 +51,16 @@ def filter_dietary_restrictions(df: pd.DataFrame, diet_restriction: str, allerge
         "Vegetarian-value", "Vegan-value"
     ]
     
-    print(diet_restriction)
-    print(allergens)
-    
     if "None" in diet_restriction:
         diet_restriction = ""
         
     if diet_restriction.lower() in restriction_columns.keys():
         diet_restriction = str(restriction_columns.get(diet_restriction.lower()))
     for i, allergen in enumerate(allergens):
-        print(allergen.lower())
         if allergen.lower() in restriction_columns.keys():
             allergens[i] = restriction_columns.get(allergen.lower())
     
     allergen_columns = [allergen for allergen in df.columns.to_list() if allergen not in not_allergen]
-    
-    print(diet_restriction)
-    print(allergens)
     
     for restriction in dietary_columns:
         if restriction in diet_restriction:

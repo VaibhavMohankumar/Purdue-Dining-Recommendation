@@ -2,6 +2,7 @@
 Meal recommendation utility.
 """
 
+import warnings
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.neighbors import NearestNeighbors
@@ -41,8 +42,10 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
     df = _extract_nutrition_values(df, list(user_preferences.keys()))
             
     scaler = StandardScaler()
-
+    
+    warnings.filterwarnings("ignore", category=UserWarning)
     X = scaler.fit_transform(df[list(user_preferences.keys())])
+    
     user_target = scaler.transform([list(user_preferences.values())])
 
     model = NearestNeighbors(n_neighbors=min(limit, len(df)))
