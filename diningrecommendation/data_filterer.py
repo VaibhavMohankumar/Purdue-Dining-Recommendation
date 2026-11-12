@@ -54,18 +54,23 @@ def filter_dietary_restrictions(df: pd.DataFrame, diet_restriction: str, allerge
     if "None" in diet_restriction:
         diet_restriction = ""
         
+    # Checking for matching values of diet restrictions and allergens since the streamlit interface
+    # does not include the "-value" following the restriction or allergen name to ensure ease of readability
     if diet_restriction.lower() in restriction_columns.keys():
         diet_restriction = str(restriction_columns.get(diet_restriction.lower()))
+        
     for i, allergen in enumerate(allergens):
         if allergen.lower() in restriction_columns.keys():
             allergens[i] = restriction_columns.get(allergen.lower())
     
     allergen_columns = [allergen for allergen in df.columns.to_list() if allergen not in not_allergen]
     
+    # Only keeps rows that meet dietary restriction using a boolean mask
     for restriction in dietary_columns:
         if restriction in diet_restriction:
             df = df[~df[restriction].isna()]
     
+    # Only keeps rows that avoid selected allergens using a boolean mask
     for allergen in allergen_columns:
         if allergen in allergens:
             df = df[df[allergen].isna()]

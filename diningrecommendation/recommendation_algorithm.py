@@ -44,8 +44,11 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
     scaler = StandardScaler()
     
     warnings.filterwarnings("ignore", category=UserWarning)
-    X = scaler.fit_transform(df[list(user_preferences.keys())])
+    # Fit the scaler only to data columns that the user had a perference for
+    # Fitting to the entire dataset would lead to undesirable results
     
+    # Transform the data to ensure one nutrition value isn't a higher priority than the other
+    X = scaler.fit_transform(df[list(user_preferences.keys())])
     user_target = scaler.transform([list(user_preferences.values())])
 
     model = NearestNeighbors(n_neighbors=min(limit, len(df)))

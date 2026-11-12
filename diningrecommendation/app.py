@@ -59,6 +59,9 @@ if st.button("Recommend items", type="primary"):
                     
                     diet_restrictions = []
                     known_allergens = []
+                    
+                    # Adds list of dietary restrictions and allergens for each item to 
+                    # each item container object in the streamlit interface
                     for col_name, value in row.items():
                         if pd.notna(value):
                             if col_name.partition("-")[0] in constants.ALLERGENS:

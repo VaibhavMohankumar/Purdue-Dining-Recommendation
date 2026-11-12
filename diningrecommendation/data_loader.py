@@ -107,6 +107,7 @@ def parse_data(json_data) -> pd.DataFrame:
                 if not inner_item:
                     continue
                 
+                # Enters another loop if a station has another "collection" of items in it
                 if (inner_item.get("components")):
                     
                     for component_item in inner_item.get("components"):
