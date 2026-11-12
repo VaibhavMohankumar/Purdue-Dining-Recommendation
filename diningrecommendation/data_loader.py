@@ -5,9 +5,9 @@ Utility for retrieving Purdue dining menu data and selecting a meal period.
 import requests
 from datetime import datetime, date
 import pandas as pd
-import diningrecommendation.constants as constants
-from diningrecommendation.dining_exception import DiningException
-
+import streamlit as st
+import constants
+from dining_exception import DiningException
 
 def get_meal_period(hour=None) -> str:
     """
@@ -33,6 +33,7 @@ def get_meal_period(hour=None) -> str:
         return "DINNER"
     
 
+@st.cache_data
 def get_json(location: str, menu_date: date, meal_period=None, timeout: int=15):
     """
     Fetch a Purdue dining menu and return one meal period.
@@ -63,7 +64,7 @@ def get_json(location: str, menu_date: date, meal_period=None, timeout: int=15):
     except requests.exceptions.RequestException as e:
         raise e
     
-    if meal_period is None:
+    if meal_period is None or meal_period == "Now":
         meal_period = get_meal_period()
     
     data = response.json()
@@ -95,39 +96,43 @@ def parse_data(json_data) -> pd.DataFrame:
     """
     
     rows = []
-    
-    for station in json_data[1]:
-        station_name = station.get("name")
-        
-        for item in station.get("items", []):
-            name = item.get("displayName")
+    try: 
+        for station in json_data[1]:
+            station_name = station.get("name")
             
-            inner_item = item.get("item", {})
-            if not inner_item:
-                continue
-            
-            if (inner_item.get("components")):
+            for item in station.get("items", []):
+                name = item.get("displayName")
                 
-                for component_item in inner_item.get("components"):
+                inner_item = item.get("item", {})
+                if not inner_item:
+                    continue
+                
+                # Enters another loop if a station has another "collection" of items in it
+                if (inner_item.get("components")):
                     
-                    name = component_item.get("name")
-                    item_id = component_item.get("itemId")
-                    nutrition_info = component_item.get("nutritionFacts") or []
-                    allergen_info = component_item.get("traits") or []
-                    
-                    rows.append(parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
-            else:
-                item_id = inner_item.get("itemId")
-                nutrition_info = inner_item.get("nutritionFacts") or []
-                allergen_info = inner_item.get("traits") or []
+                    for component_item in inner_item.get("components"):
+                        
+                        name = component_item.get("name")
+                        item_id = component_item.get("itemId")
+                        nutrition_info = component_item.get("nutritionFacts") or []
+                        allergen_info = component_item.get("traits") or []
+                        
+                        rows.append(_parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
+                else:
+                    item_id = inner_item.get("itemId")
+                    nutrition_info = inner_item.get("nutritionFacts") or []
+                    allergen_info = inner_item.get("traits") or []
 
-                rows.append(parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
-        
-    df = pd.DataFrame(rows)
-    df = df.drop_duplicates("item_id")
-    return df
+                    rows.append(_parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info))
+            
+        df = pd.DataFrame(rows)
+        df = df.drop_duplicates("item_id")
+        df = df.drop_duplicates("item_name")
+        return df
+    except KeyError:
+        raise DiningException("No meal Served")
 
-def parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info) -> dict:
+def _parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info) -> dict:
     """
     Convert one menu item's information into a dictionary representing a row in a pandas DataFrame.
 

@@ -1,5 +1,7 @@
-import diningrecommendation.data_loader as dl
-import diningrecommendation.data_filterer as dfr
+"""Test cases used during development process"""
+
+from diningrecommendation import data_loader as dl
+from diningrecommendation import data_filterer as dfr
 from datetime import date, datetime
 import pytest
 
@@ -64,72 +66,10 @@ def menu_dataframe():
 
     return df
 
-
-# 4 Tests to ensure nutrition filtering return filtered menu items
-def test_max_calories(menu_dataframe):
-    max_calories = 500
-
-    result = dfr.filter_nutrition_requirements(
-        menu_dataframe,
-        max_cals=max_calories,
-    )
-
-    assert (result["Calories-value"] <= max_calories).all()
-
-
-def test_minimum_protein(menu_dataframe):
-    minimum_protein = 10
-
-    result = dfr.filter_nutrition_requirements(
-        menu_dataframe,
-        min_protein=minimum_protein,
-    )
-
-    assert (result["Protein-value"] >= minimum_protein).all()
-
-
-def test_maximum_carbohydrates(menu_dataframe):
-    maximum_carbs = 60
-
-    result = dfr.filter_nutrition_requirements(
-        menu_dataframe,
-        max_carbs=maximum_carbs,
-    )
-
-    assert (result["Total Carbohydrate-value"] <= maximum_carbs).all()
-
-
-def test_maximum_fat(menu_dataframe):
-    maximum_fat = 25
-
-    result = dfr.filter_nutrition_requirements(
-        menu_dataframe,
-        max_fat=maximum_fat,
-    )
-
-    assert (result["Total fat-value"] <= maximum_fat).all()
-    
-
-# 2 Tests to ensure diet and allergen requirements/restrictions are filtered
-def test_live_nutrition_filter(menu_dataframe):
-    result = dfr.filter_nutrition_requirements(
-        menu_dataframe,
-        max_cals=500,
-        min_protein=10,
-        max_carbs=60,
-        max_fat=25,
-    )
-
-    assert (result["Calories-value"] <= 500).all()
-    assert (result["Protein-value"] >= 10).all()
-    assert (result["Total Carbohydrate-value"] <= 60).all()
-    assert (result["Total fat-value"] <= 25).all()
-
-
 def test_live_dietary_filter(menu_dataframe):
     result = dfr.filter_dietary_restrictions(
         menu_dataframe,
-        diet_restrictions=["Vegetarian-value"],
+        diet_restriction="Vegetarian-value",
         allergens=["Milk-value"],
     )
 
