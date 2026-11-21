@@ -18,6 +18,7 @@ This project helps students find menu items that meet their requirements with th
 6. Nutrition features are standardized.
 7. `NearestNeighbors` ranks the remaining items based on the user’s nutrition preferences.
 8. Streamlit displays the recommended items and explains each match alongisde displaying dietary/allergen information.
+9. Each recommendation includes a nutrition bar chart showing how closely each item matches the user’s nutrition preferences.
 
 \
 ![System Diagram](System%20Diagram.png)
@@ -112,7 +113,7 @@ Desired calories: 400
 Desired protein: 20g
 Desired carbohydrates: 20g
 Desired fat: 30g
-Number of recommendations: 5
+Number of recommendations: 1
 ```
 
 ### Example Output
@@ -121,17 +122,23 @@ Number of recommendations: 5
 Paneer Curry
 Gluten Friendly
 
-Closest nutrition match:
-521 calories, 22g protein, 6g carbs, and 47g fat.
+Closest nutrition match: 521 calories, 22g protein, 6g carbs, and 47g fat.
 
 Meets dietary restrictions for: Vegetarian
 Contains: Milk
+Percentage of nutrition preference met
+Percentages displayed using a bar chart
+Calories: 130%
+Protein: 110%
+Carbohydrates: 30%
+Fat: 157%
 ```
 
 The exact menu items and recommendations change because the application uses live data from Purdue Dining API data.
 
 ## Roadmap
 
+### MVP Features
 - [x] Define the project problem and MVP scope
 - [x] Create the project README
 - [x] Create the system diagram
@@ -145,8 +152,10 @@ The exact menu items and recommendations change because the application uses liv
 - [x] Implement the `NearestNeighbors` recommendation algorithm
 - [x] Build the Streamlit interface
 - [x] Add tests for major functions
+
+### Schedule Features
 - [ ] Add custom meals made from multiple station items
-- [ ] Add nutrition visualizations
+- [X] Add nutrition visualizations
 - [ ] Add scheduled fetcher for daily meal update
 - [ ] Add user feedback to improve recommendations
 

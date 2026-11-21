@@ -51,7 +51,7 @@ if st.button("Recommend items", type="primary"):
             st.error("No items meet search criteria")
         else:
             for _, row in menu_data.iterrows():
-                with st.container(border=True):
+                with st.container(border=True, width="stretch"):
                     st.subheader(row["item_name"])
                     st.caption(row['station_name'])
                     st.write(row["recommendation_reason"])
@@ -71,6 +71,35 @@ if st.button("Recommend items", type="primary"):
                     
                     st.write("Meets dietary restrictions for: ", "None" if (len(diet_restrictions) == 0) else (", ".join(diet_restrictions)))
                     st.write("Contains: ", "No listed allergens" if (len(known_allergens) == 0) else (", ".join(known_allergens)))
+                    
+                    # Nutrition bar vizualizer to aid user in seeing how much of their prefernce was met
+                    nutrition_targets = {
+                        "Calories": desired_cals,
+                        "Carbohydrates (g)": desired_carbs,
+                        "Protein (g)": desired_protein,
+                        "Fat (g)": desired_fat
+                    }
+
+                    nutrition_values = {
+                        "Calories": row.get("Calories-value", 0),
+                        "Carbohydrates (g)": row.get("Total Carbohydrate-value", 0),
+                        "Protein (g)": row.get("Protein-value", 0),
+                        "Fat (g)": row.get("Total fat-value", 0)
+                    }
+                    
+                    # Calculates percentage of user preference met for each nutrition labal
+                    percentage_values = {}
+                    for nutrition, preference in nutrition_targets.items():
+                        actual = nutrition_values[nutrition]
+
+                        if preference and preference != 0:
+                            percentage_values[nutrition] = (actual / preference) * 100
+                        else:
+                            percentage_values[nutrition] = 0
+
+                    st.caption("Percentage of nutrition preference met")
+                    nutrition_chart = pd.DataFrame({"Percent of preference": percentage_values})
+                    st.bar_chart(nutrition_chart, y_label="percentage of preference", horizontal=True, height=180)
     except Exception as e:
         st.error(f"Could not load Purdue dining data: {e}")
             
