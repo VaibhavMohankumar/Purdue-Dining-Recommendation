@@ -39,7 +39,7 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
         user_preferences["Total fat-value"] = fat
 
     
-    df = _extract_nutrition_values(df, list(user_preferences.keys()))
+    df = extract_nutrition_values(df, list(user_preferences.keys()))
             
     scaler = StandardScaler()
     
@@ -66,7 +66,7 @@ def recommend_item(df: pd.DataFrame, calories=None, protein=None, carbs=None, fa
             
     return recommendations
 
-def _extract_nutrition_values(df: pd.DataFrame, columns: list) -> pd.DataFrame:
+def extract_nutrition_values(df: pd.DataFrame, columns: list) -> pd.DataFrame:
     """
     Extract numeric nutrition values from DataFrame columns.
 
