@@ -19,6 +19,7 @@ This project helps students find menu items that meet their requirements with th
 7. `NearestNeighbors` ranks the remaining items based on the user’s nutrition preferences.
 8. Streamlit displays the recommended items and explains each match alongisde displaying dietary/allergen information.
 9. Each recommendation includes a nutrition bar chart showing how closely each item matches the user’s nutrition preferences.
+10. Add custom meals comprising of several items available at the dining hall included in meal recommender once saved
 
 \
 ![System Diagram](System%20Diagram.png)
@@ -154,7 +155,7 @@ The exact menu items and recommendations change because the application uses liv
 - [x] Add tests for major functions
 
 ### Schedule Features
-- [ ] Add custom meals made from multiple station items
+- [X] Add custom meals made from multiple station items
 - [X] Add nutrition visualizations
 - [ ] Add scheduled fetcher for daily meal update
 - [ ] Add user feedback to improve recommendations
@@ -166,6 +167,7 @@ The exact menu items and recommendations change because the application uses liv
 
 The walkthrough demonstrates:
 
+- Creating custom meals from available items
 - Selecting a dining hall and meal period
 - Entering nutrition preferences
 - Selecting dietary restrictions and allergens
