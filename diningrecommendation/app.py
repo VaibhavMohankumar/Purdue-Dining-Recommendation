@@ -31,7 +31,14 @@ if "recommendations" not in st.session_state:
 if "builder_menu" not in st.session_state:
     st.session_state.builder_menu = None
 
-def _update_selection(item_name, key):
+def reset_selection():
+    """
+    Clear the selected menu items when the Custom Meal Builder tab is active.
+    """
+    if st.session_state["main_tabs"] == "Custom Meal Builder":
+        st.session_state.selections = []
+
+def update_selection(item_name, key):
     """
     Add or remove a menu item from the user's custom meal selections.
 
@@ -49,6 +56,51 @@ def _update_selection(item_name, key):
     else:
         if item_name in st.session_state.selections:
             st.session_state.selections.remove(item_name)
+
+
+def save_custom_item(df, item_names, meal_name):
+    """
+    Combine selected menu items into a custom meal and append it to a CSV file.
+
+    Nutrition values are summed across the selected items. An allergen is
+    included if any selected item lists it. A dietary trait is included only
+    if every selected item has that trait.
+
+    Args:
+        df: DataFrame containing the available menu items.
+        item_names: Names of the menu items selected for the custom meal.
+        meal_name: Name entered for the resulting custom meal.
+    """
+    custom_meal_list = df[df["item_name"].isin(item_names)].copy()
+    custom_meal_list = ra.extract_nutrition_values(custom_meal_list, constants.NUTRITION_COLUMNS)
+
+    custom_meal = {
+        "station_name": "Custom meal",
+        "item_name": meal_name,
+        "item_id": "|".join(custom_meal_list["item_id"].dropna().astype(str)),
+        "Serving Size-value": "Combined servings"
+    }
+
+    # Total all nutriton values for custom meal
+    for column in constants.NUTRITION_COLUMNS:
+        custom_meal[column] = custom_meal_list[column].sum(min_count=1)
+
+    # Adds allergy if any item added contains it
+    for column in constants.ALLERGEN_COLUMNS:
+        column = f"{column}-value"
+        if column in custom_meal_list.columns:
+            has_allergen = custom_meal_list[column].notna().any()
+            custom_meal[column] = "Allergen" if has_allergen else None
+
+    # Adds dietary restriction only if all items meet restriction
+    for column in constants.DIETARY_COLUMNS:
+        column = f"{column}-value"
+        if column in custom_meal_list.columns:
+            all_components_have_trait = custom_meal_list[column].notna().all()
+            custom_meal[column] = "Preference" if all_components_have_trait else None
+
+    pd.DataFrame([custom_meal]).to_csv("custom_items.csv", mode="a", index=True, header=False)
+
 
 def _item_loader(menu_data):
     """
@@ -89,7 +141,7 @@ def _item_loader(menu_data):
                     # each item container object in the streamlit interface
                     for col_name, value in row.items():
                         if pd.notna(value):
-                            if col_name.partition("-")[0] in constants.ALLERGENS:
+                            if col_name.partition("-")[0] in constants.ALLERGEN_COLUMNS:
                                 known_allergens.append(col_name.partition("-")[0])
                             if col_name.partition("-")[0] in constants.DIETARY_COLUMNS:
                                 diet_restrictions.append(col_name.partition("-")[0])
@@ -133,7 +185,7 @@ def _item_loader(menu_data):
                         st.checkbox(
                             f"Select {row['item_name']}",
                             key=key,
-                            on_change=_update_selection,
+                            on_change=update_selection,
                             args=(row["item_name"], key),
                             label_visibility="collapsed",
                         )
@@ -141,15 +193,15 @@ def _item_loader(menu_data):
 
 
 st.title("Purdue Dining Recommendation")
-recommender, build = st.tabs(["Dining Recommender", "Custom Meal Builder"], on_change="rerun")
+recommender, build = st.tabs(["Dining Recommender", "Custom Meal Builder"], key="main_tabs", on_change=reset_selection)
 
 with st.sidebar:
     location = st.selectbox("Dining location", constants.DINING_HALLS)
     menu_date = st.date_input("Menu date", date.today())
     meal_period = st.selectbox("Meal period", constants.MEAL_OPTIONS)
-    
+
     dietary_restrictions = st.selectbox("Dietary Restrictions", constants.DIETARY_COLUMNS)
-    allergens = st.multiselect("Allergies", constants.ALLERGENS)
+    allergens = st.multiselect("Allergies", constants.ALLERGEN_COLUMNS)
     
     # Desired nutritonal info only required to recommend
     if recommender.open:
@@ -168,6 +220,7 @@ with recommender:
             with st.spinner("Fetching Purdue menu data"):
                 menu_data = dl.get_json(location=location, menu_date=menu_date, meal_period= meal_period)
                 menu_data = dl.parse_data(menu_data)
+                menu_data = dl.parse_custom_data(menu_data, pd.read_csv("custom_items.csv", dtype=str))
                 menu_data = dfr.filter_dietary_restrictions(menu_data, diet_restriction=dietary_restrictions, allergens=allergens)
                 menu_data = ra.recommend_item(menu_data, desired_cals, desired_protein, desired_carbs, desired_fat, limit=limit)
             st.session_state.recommendations = menu_data
@@ -186,8 +239,7 @@ with recommender:
                 
                 
 with build:
-    st.write("Build a Custom Meal")
-    
+    st.write("Build a Custom Meal: Select items")
     if st.button("Load items", type="primary"):
         try:
             with st.spinner("Fetching Purdue menu data"):
@@ -200,6 +252,24 @@ with build:
         except Exception as f:
             st.error(f"Unexpected error: {f}")
 
+    left, right = st.columns([1, 6], vertical_alignment="bottom")
+
+    with right:
+        save_meal = st.button("Save Meal", type="secondary")
+    with left:
+        custom_name = st.text_input("Meal name", width=100)
+            
+    if save_meal:
+        if not custom_name.strip():
+            st.warning("Enter a meal name.")
+        elif st.session_state.builder_menu is None:
+            st.warning("Load the menu first.")
+        elif not st.session_state.selections:
+            st.warning("Select at least one item.")
+        else:
+            save_custom_item(st.session_state.builder_menu, st.session_state.selections, custom_name.strip())
+            st.success(f"Saved {custom_name}")
+            
     # Keep the builder list visible after checkboxes are selected
     builder_menu = st.session_state.builder_menu
     if builder_menu is not None:

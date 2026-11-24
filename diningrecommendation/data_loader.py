@@ -131,7 +131,45 @@ def parse_data(json_data) -> pd.DataFrame:
         return df
     except KeyError:
         raise DiningException("No meal Served")
+    
+def parse_custom_data(original: pd.DataFrame, custom: pd.DataFrame):
+    """
+    Append saved custom meals whose component items are available in the menu.
 
+    A saved custom meal is included only when every component ID stored in its
+    ``item_id`` field matches an item ID in the current menu. The custom rows
+    are aligned to the current menu's columns before being appended.
+
+    Args:
+        original: DataFrame of menu items parsed from the current API response.
+        custom: DataFrame of saved custom meals loaded from the CSV file.
+
+    Returns:
+        A DataFrame containing the original menu items followed by eligible
+        custom meal rows.
+    """
+    original_ids = set(original["item_id"].dropna().astype(str))
+    available_rows = []
+
+    for _, row in custom.iterrows():
+        component_ids = {
+            item_id.strip()
+            for item_id in str(row["item_id"]).split("|")
+            if item_id.strip()
+        }
+
+        missing_ids = component_ids - original_ids
+        print(row["item_name"], "missing component IDs:", missing_ids)
+
+        if not missing_ids:
+            available_rows.append(row)
+
+    custom_rows = pd.DataFrame(available_rows)
+
+    # Align custom rows to the original menu's columns, then append them.
+    custom_rows = custom_rows.reindex(columns=original.columns)
+    return pd.concat([original, custom_rows], ignore_index=True)
+    
 def _parse_info_to_row(station_name, name, item_id, nutrition_info, allergen_info) -> dict:
     """
     Convert one menu item's information into a dictionary representing a row in a pandas DataFrame.
